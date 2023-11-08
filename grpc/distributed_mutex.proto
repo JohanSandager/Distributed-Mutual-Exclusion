@@ -3,3 +3,24 @@ syntax = "proto3";
 package distributed_mutex;
 
 option go_package = "grpc/distributed_mutex";
+
+message AssertCoordinatorMessage {
+    string ip_address = 1;
+}
+
+message CallElectionMessage {
+    
+}
+
+message ResourceRequestMessage {
+    string ip_address = 1;
+}
+
+message ResourceRequestResponse {
+    bool is_request_granted = 1;
+}
+
+service ResourceAccess {
+    rpc CallElection(CallElectionMessage) returns (AssertCoordinatorMessage);
+    rpc RequestResourceAccess(ResourceRequestMessage) returns (ResourceRequestResponse);
+} 
