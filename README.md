@@ -1,4 +1,4 @@
-# Chitty Chat
+# Distributed Mutual Exclusion
 
 An attempt to solve Distributed Mutual Exclusion as a part of the course Distributed Systems 2023 at ITU. <br>
 This is attempted solved by: <br>

@@ -78,7 +78,8 @@ func UserResourceAccess(client *Client) {
 		server_address := client.address + ":" + client.coordinator
 		connection, _ := grpc.Dial(server_address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		grpc_client := pb.NewResourceAccessClient(connection)
-		ctx, _ := context.WithTimeout(context.Background(), 200*time.Millisecond)
+		ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+		defer cancel()
 		response, err := grpc_client.RequestResourceAccess(ctx, &pb.ResourceRequestMessage{
 			Port: client.port,
 		})
