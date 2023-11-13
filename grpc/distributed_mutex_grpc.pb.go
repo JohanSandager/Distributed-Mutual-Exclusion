@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 
 const (
 	ResourceAccess_CallElection_FullMethodName          = "/distributed_mutex.ResourceAccess/CallElection"
+	ResourceAccess_AssertCoordinator_FullMethodName     = "/distributed_mutex.ResourceAccess/AssertCoordinator"
 	ResourceAccess_RequestResourceAccess_FullMethodName = "/distributed_mutex.ResourceAccess/RequestResourceAccess"
 )
 
@@ -27,7 +28,8 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ResourceAccessClient interface {
-	CallElection(ctx context.Context, in *CallElectionMessage, opts ...grpc.CallOption) (*AssertCoordinatorMessage, error)
+	CallElection(ctx context.Context, in *CallElectionMessage, opts ...grpc.CallOption) (*CallElectionResponseMessage, error)
+	AssertCoordinator(ctx context.Context, in *AssertCoordinatorMessage, opts ...grpc.CallOption) (*AssertCoordinatorResponseMessage, error)
 	RequestResourceAccess(ctx context.Context, in *ResourceRequestMessage, opts ...grpc.CallOption) (*ResourceRequestResponse, error)
 }
 
@@ -39,9 +41,18 @@ func NewResourceAccessClient(cc grpc.ClientConnInterface) ResourceAccessClient {
 	return &resourceAccessClient{cc}
 }
 
-func (c *resourceAccessClient) CallElection(ctx context.Context, in *CallElectionMessage, opts ...grpc.CallOption) (*AssertCoordinatorMessage, error) {
-	out := new(AssertCoordinatorMessage)
+func (c *resourceAccessClient) CallElection(ctx context.Context, in *CallElectionMessage, opts ...grpc.CallOption) (*CallElectionResponseMessage, error) {
+	out := new(CallElectionResponseMessage)
 	err := c.cc.Invoke(ctx, ResourceAccess_CallElection_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *resourceAccessClient) AssertCoordinator(ctx context.Context, in *AssertCoordinatorMessage, opts ...grpc.CallOption) (*AssertCoordinatorResponseMessage, error) {
+	out := new(AssertCoordinatorResponseMessage)
+	err := c.cc.Invoke(ctx, ResourceAccess_AssertCoordinator_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +72,8 @@ func (c *resourceAccessClient) RequestResourceAccess(ctx context.Context, in *Re
 // All implementations must embed UnimplementedResourceAccessServer
 // for forward compatibility
 type ResourceAccessServer interface {
-	CallElection(context.Context, *CallElectionMessage) (*AssertCoordinatorMessage, error)
+	CallElection(context.Context, *CallElectionMessage) (*CallElectionResponseMessage, error)
+	AssertCoordinator(context.Context, *AssertCoordinatorMessage) (*AssertCoordinatorResponseMessage, error)
 	RequestResourceAccess(context.Context, *ResourceRequestMessage) (*ResourceRequestResponse, error)
 	mustEmbedUnimplementedResourceAccessServer()
 }
@@ -70,8 +82,11 @@ type ResourceAccessServer interface {
 type UnimplementedResourceAccessServer struct {
 }
 
-func (UnimplementedResourceAccessServer) CallElection(context.Context, *CallElectionMessage) (*AssertCoordinatorMessage, error) {
+func (UnimplementedResourceAccessServer) CallElection(context.Context, *CallElectionMessage) (*CallElectionResponseMessage, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CallElection not implemented")
+}
+func (UnimplementedResourceAccessServer) AssertCoordinator(context.Context, *AssertCoordinatorMessage) (*AssertCoordinatorResponseMessage, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AssertCoordinator not implemented")
 }
 func (UnimplementedResourceAccessServer) RequestResourceAccess(context.Context, *ResourceRequestMessage) (*ResourceRequestResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RequestResourceAccess not implemented")
@@ -107,6 +122,24 @@ func _ResourceAccess_CallElection_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ResourceAccess_AssertCoordinator_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AssertCoordinatorMessage)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceAccessServer).AssertCoordinator(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ResourceAccess_AssertCoordinator_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceAccessServer).AssertCoordinator(ctx, req.(*AssertCoordinatorMessage))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ResourceAccess_RequestResourceAccess_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ResourceRequestMessage)
 	if err := dec(in); err != nil {
@@ -135,6 +168,10 @@ var ResourceAccess_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CallElection",
 			Handler:    _ResourceAccess_CallElection_Handler,
+		},
+		{
+			MethodName: "AssertCoordinator",
+			Handler:    _ResourceAccess_AssertCoordinator_Handler,
 		},
 		{
 			MethodName: "RequestResourceAccess",
